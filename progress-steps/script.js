@@ -1,60 +1,135 @@
-const circles = document.querySelectorAll('.circle');
-const progress = document.querySelector('.progress');
-const nextBtn = document.querySelector('#next');
-const prevBtn = document.querySelector('#prev');
+class Circles {
+  constructor() {
+    this.el = document.querySelectorAll('.circle');
+    this.state = {
+      step: 0,
+    };
+  }
+
+  setState(newState) {
+    this.state = newState;
+    this.render();
+  }
+
+  render() {
+    this.el.forEach((circle, step) => {
+      if (step <= this.state.step) {
+        circle.classList.add('active');
+      } else {
+        circle.classList.remove('active');
+      }
+    });
+  }
+}
+
+class Progress {
+  constructor() {
+    this.el = document.querySelector('.progress');
+    this.state = {
+      progress: 0,
+    };
+  }
+
+  setState(newState) {
+    this.state = newState;
+    this.render();
+  }
+
+  render() {
+    this.el.style.width = `${this.state.progress}%`;
+  }
+}
+
+class ButtonNext {
+  constructor({ onClick }) {
+    this.el = document.querySelector('#next');
+    this.el.addEventListener('click', this.handleClick.bind(this));
+    this.state = {
+      isDisabled: false,
+    };
+    this.onClick = onClick;
+  }
+
+  setState(newState) {
+    this.state = newState;
+    this.render();
+  }
+
+  handleClick() {
+    this.onClick();
+  }
+
+  render() {
+    this.el.disabled = this.state.isDisabled;
+  }
+}
+
+class ButtonPrev {
+  constructor({ onClick }) {
+    this.el = document.querySelector('#prev');
+    this.el.addEventListener('click', this.handleClick.bind(this));
+    this.state = {
+      isDisabled: false,
+    };
+    this.onClick = onClick;
+  }
+
+  setState(newState) {
+    this.state = newState;
+    this.render();
+  }
+
+  handleClick() {
+    this.onClick();
+  }
+
+  render() {
+    this.el.disabled = this.state.isDisabled;
+  }
+}
 
 const MAX_STEP = 3;
 
-let [currentStep, setCurrentStep] = [
-  0,
-  (value) => {
-    currentStep = value;
-    render();
-  },
-];
+class App {
+  constructor() {
+    this.circles = new Circles();
+    this.progress = new Progress();
+    this.buttonNext = new ButtonNext({ onClick: this.stepUp.bind(this) });
+    this.buttonPrev = new ButtonPrev({ onClick: this.stepDown.bind(this) });
 
-const render = () => {
-  renderCircles();
-  renderProgress();
-  renderButton();
-};
+    this.state = {
+      currentStep: 0,
+    };
+  }
 
-const renderCircles = () => {
-  circles.forEach((circle, step) => {
-    if (step <= currentStep) {
-      circle.classList.add('active');
-    } else {
-      circle.classList.remove('active');
+  setState(newState) {
+    this.state = newState;
+    this.render();
+  }
+
+  stepUp() {
+    if (this.state.currentStep < MAX_STEP) {
+      this.setState({ currentStep: this.state.currentStep + 1 });
     }
-  });
-};
-
-const renderProgress = () => {
-  const progressPercentage = (100 / MAX_STEP) * currentStep;
-  progress.style.width = `${progressPercentage}%`;
-};
-
-const renderButton = () => {
-  if (currentStep === 0) {
-    prevBtn.disabled = true;
-    nextBtn.disabled = false;
-  } else if (currentStep === MAX_STEP) {
-    prevBtn.disabled = false;
-    nextBtn.disabled = true;
   }
-};
 
-const stepUp = () => {
-  if (currentStep < MAX_STEP) {
-    setCurrentStep(currentStep + 1);
+  stepDown() {
+    if (this.state.currentStep > 0) {
+      this.setState({ currentStep: this.state.currentStep - 1 });
+    }
   }
-};
 
-const stepDown = () => {
-  if (currentStep > 0) {
-    setCurrentStep(currentStep - 1);
+  render() {
+    this.circles.setState({ step: this.state.currentStep });
+    this.progress.setState({
+      progress: (100 / MAX_STEP) * this.state.currentStep,
+    });
+    this.buttonNext.setState({
+      isDisabled: this.state.currentStep === MAX_STEP,
+    });
+    this.buttonPrev.setState({ isDisabled: this.state.currentStep === 0 });
   }
-};
+}
 
-nextBtn.addEventListener('click', stepUp);
-prevBtn.addEventListener('click', stepDown);
+const app = new App();
+app.render();
